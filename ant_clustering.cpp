@@ -1,36 +1,9 @@
 #include <bits/stdc++.h>
 #include <chrono>
 #include <thread>
+#include "debug.hpp"
 
 using namespace std;
-
-// ≽(•⩊ •マ≼
-template <typename T>
-ostream &operator<<(ostream &os, const vector<T> &v) { 
-    os << "{";
-    int n = (int)v.size();
-    for (int i = 0; i < n; i++) {
-        os << v[i];
-        if (i < n - 1) os << ", ";
-    }
-    os << "}";
-    return os;
-}
-
-void _print() { }
-template <typename T, typename... U>
-void _print(T a, U... b) {
-    if (sizeof...(b)) {
-        cerr << a << ", ";
-        _print(b...);
-    } else cerr << a;
-}
-
-#ifndef ONLINE_JUDGE
-#define debug(x...) cerr << "[" << #x << "] = [", _print(x), cerr << "]" << endl
-#else
-#define debug(...)
-#endif
 
 struct Item {
     bool exists = false;
@@ -47,6 +20,7 @@ private:
     int numItems;
     int numAnts;
     int radious = 1;
+    int k1 = 0.3, k2 = 0.3;
 
     vector<vector<Item>> grid;
     vector<vector<bool>> antGrid;
@@ -65,17 +39,28 @@ public:
         placeAnts();
     }
 
-    void run(int steps) {
-        cout << "Estado inicial:" << endl;
-        draw(0);
+    void run(int steps, bool visualize = false, int delayMs = 80) {
+        if (!visualize) {
+            cout << "Estado inicial:\n";
+            draw(0);
+        }
+
         for (int t = 1; t <= steps; t++) {
             for (auto &ant : ants) {
                 moveAnt(ant);
                 act(ant);
             }
+
+            if (visualize) {
+                draw(t);
+                this_thread::sleep_for(chrono::milliseconds(delayMs));
+            }
         }
-        cout << "Estado final:" << endl;
-        draw(steps);
+
+        if (!visualize) {
+            cout << "Estado final:\n";
+            draw(steps);
+        }
     }
 
 private:
@@ -156,14 +141,12 @@ private:
 
     double pickProbability(int ant_items) {
         double f = ant_items/8.0;
-        double k = 0.3;
-        return pow(k/(k + f), 2);
+        return pow(k1/(k1 + f), 2);
     }
 
     double dropProbability(int ant_items) {
         double f = ant_items/8.0;
-        double k = 0.3;
-        return pow(f/(k + f), 2);
+        return pow(f/(k2 + f), 2);
     }
 
     void act(Ant &ant) {
@@ -186,7 +169,10 @@ private:
         }
     }
 
-    void draw(int step) {
+void draw(int step, bool clear = false) {
+    if (clear) {
+        cout << "\033[2J\033[1;1H";
+    }
         vector<string> view(rows, string(cols, '.'));
 
         for(int i = 0; i < rows; i++) {
@@ -216,14 +202,12 @@ int main() {
     cin.tie(0)->sync_with_stdio(0);
 
     AntClustering antC(20, 40, 120, 15);
+    // Para rodar sem visualização, use: antC.run(numero_de_passos);
+    // Para rodar com visualização, use: antC.run(numero_de_passos, true, delay_em_milisegundos);
+
     antC.run(10000);
 
     return 0;
 }
-/*   /\_/\
-*   (= ._.)
-*   / >  \>
-*/
-
 
 
